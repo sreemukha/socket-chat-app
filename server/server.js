@@ -1,21 +1,27 @@
 const path = require('path');
 const express = require('express');
+const http = require('http');
+const socketIO = require('socket.io');
 
+
+const publicPath = path.join(__dirname,'../client');
 
 const port = process.env.PORT || 3000;
-console.log(port);
-if(port === 3000){
-  var publicPath = path.join(__dirname,'..\\client');
-} else {
-  var publicPath = path.join(__dirname,'../client');
-}
 let app = express();
+let server = http.createServer(app);
+let io = socketIO(server);
 
 // static middleware to serve static html in client folder
 app.use(express.static(publicPath));
 
+io.on('connection', (socket) => {
+  console.log('New user connected');
+  socket.on('disconnect', () => {
+    console.log('Client disconnected');
+  });
+});
 
 
-app.listen(port, () => {
+server.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
