@@ -45,15 +45,23 @@ io.on('connection', (socket) => {
   socket.on('createMessage', (msg, callback) => {
     console.log('createMessage',msg);
 
-    // io.emit emits event to every single connection
-    io.emit('newMessage', generateMessage(msg.from, msg.text));
+    const user = users.getUser(socket.id);
+    if(user && isRealString(msg.text)){
+      // io.emit emits event to every single connection
+      io.to(user.room).emit('newMessage', generateMessage(user.name, msg.text));
+    }
     callback();
   });
 
   // create location message listener
 
   socket.on('createLocationMessage', (coords) => {
-    io.emit('newLocationMessage', generateLocationMessage('Location Service',coords.latitude, coords.longitude));
+
+    const user = users.getUser(socket.id);
+    if(user){
+      // io.emit emits event to every single connection
+      io.to(user.room).emit('newLocationMessage', generateLocationMessage(user.name,coords.latitude, coords.longitude));
+    }
   });
 
   socket.on('disconnect', () => {
