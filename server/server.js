@@ -30,7 +30,7 @@ io.on('connection', (socket) => {
 
     // io.emit emits event to every single connection
     io.emit('newMessage', generateMessage(msg.from, msg.text));
-    callback('Server Acknowledgment');
+    callback();
   });
 
   // create location message listener
