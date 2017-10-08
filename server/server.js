@@ -25,12 +25,12 @@ io.on('connection', (socket) => {
 
   // create message listener
 
-  socket.on('createMessage', (msg) => {
+  socket.on('createMessage', (msg, callback) => {
     console.log('createMessage',msg);
 
     // io.emit emits event to every single connection
     io.emit('newMessage', generateMessage(msg.from, msg.text));
-
+    callback('Server Acknowledgment');
   });
 
   socket.on('disconnect', () => {
