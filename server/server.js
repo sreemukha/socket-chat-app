@@ -2,7 +2,10 @@ const path = require('path');
 const express = require('express');
 const http = require('http');
 const socketIO = require('socket.io');
+
 const {generateMessage,generateLocationMessage} = require('./utils/message');
+const {isRealString} = require('./utils/validation');
+const {Users} = require('./utils/users');
 
 const publicPath = path.join(__dirname, '../client');
 
@@ -10,6 +13,7 @@ const port = process.env.PORT || 3000;
 let app = express();
 let server = http.createServer(app);
 let io = socketIO(server);
+let users = new Users();
 
 // static middleware to serve static html in client folder
 app.use(express.static(publicPath));
@@ -17,11 +21,24 @@ app.use(express.static(publicPath));
 io.on('connection', (socket) => {
   console.log('New user connected');
 
-  // socket.emit emits an event to single connection
-  socket.emit('newMessage',generateMessage('King', 'Welcome to the chat'));
+  socket.on('join', (params, callback) => {
+    if(!isRealString(params.name) || !isRealString(params.room)){
+      return callback('Name and Room are required');
+    }
 
-  socket.broadcast.emit('newMessage', generateMessage('King', 'New user joined'));
+    socket.join(params.room);
+    users.removeUser(socket.id);
+    users.addUser(socket.id, params.name,params.room);
 
+    io.to(params.room).emit('updateOnlineUsers', users.getUserList(params.room));
+
+    // socket.emit emits an event to single connection
+    socket.emit('newMessage',generateMessage('King', 'Welcome to the chat'));
+
+    socket.broadcast.to(params.room).emit('newMessage', generateMessage('King', `${params.name} has joined!`));
+
+    callback();
+  });
 
   // create message listener
 
@@ -40,7 +57,11 @@ io.on('connection', (socket) => {
   });
 
   socket.on('disconnect', () => {
-    console.log('Client disconnected');
+    const user = users.removeUser(socket.id);
+    if(user){
+      io.to(user.room).emit('updateOnlineUsers', users.getUserList(user.room));
+      io.to(user.room).emit('newMessage', generateMessage('King', `${user.name} has left the room!`));
+    }
   });
 });
 
