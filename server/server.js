@@ -2,7 +2,7 @@ const path = require('path');
 const express = require('express');
 const http = require('http');
 const socketIO = require('socket.io');
-
+const {generateMessage} = require('./utils/message');
 
 const publicPath = path.join(__dirname, '../client');
 
@@ -17,17 +17,10 @@ app.use(express.static(publicPath));
 io.on('connection', (socket) => {
   console.log('New user connected');
 
-  socket.emit('newMessage',{
-    from:"King",
-    text:"Welcome user!",
-    createdAt: new Date().getTime()
-  });
+  // socket.emit emits an event to single connection
+  socket.emit('newMessage',generateMessage('King', 'Welcome to the chat'));
 
-  socket.broadcast.emit('newMessage', {
-    from:"King",
-    text:"New User joined",
-    createdAt: new Date().getTime()
-  });
+  socket.broadcast.emit('newMessage', generateMessage('King', 'New user joined'));
 
 
   // create message listener
@@ -35,15 +28,8 @@ io.on('connection', (socket) => {
   socket.on('createMessage', (msg) => {
     console.log('createMessage',msg);
 
-    // socket.emit emits an event to single connection
-
     // io.emit emits event to every single connection
-
-    io.emit('newMessage', {
-      from: msg.from,
-      text:msg.text,
-      createdAt: new Date().getTime()
-    });
+    io.emit('newMessage', generateMessage(msg.from, msg.text));
 
   });
 
