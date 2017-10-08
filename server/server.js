@@ -33,9 +33,9 @@ io.on('connection', (socket) => {
     io.to(params.room).emit('updateOnlineUsers', users.getUserList(params.room));
 
     // socket.emit emits an event to single connection
-    socket.emit('newMessage',generateMessage('ChatBot', `Hey ${params.name}, Welcome to the chat!`));
+    socket.emit('newMessage',generateMessage('Chat Bot', `Hey ${params.name}, Welcome to the chat!`));
 
-    socket.broadcast.to(params.room).emit('newMessage', generateMessage('ChatBot', `${params.name} has joined the room!`));
+    socket.broadcast.to(params.room).emit('newMessage', generateMessage('Chat Bot', `${params.name} has joined the room!`));
 
     callback();
   });
@@ -68,7 +68,7 @@ io.on('connection', (socket) => {
     const user = users.removeUser(socket.id);
     if(user){
       io.to(user.room).emit('updateOnlineUsers', users.getUserList(user.room));
-      io.to(user.room).emit('newMessage', generateMessage('ChatBot', `${user.name} has left the room!`));
+      io.to(user.room).emit('newMessage', generateMessage('Chat Bot', `${user.name} has left the room!`));
     }
   });
 });
